@@ -164,10 +164,62 @@ Iron Maiden;8.91;27;Patrick;Gray
 Queremos descobrir o gênero musical mais popular em cada país. Determinamos o gênero mais popular como o gênero com o maior número de compras. Escreva uma consulta que retorna cada país juntamente a seu gênero mais vendido. Para países onde o número máximo de compras é compartilhado retorne todos os gêneros.
 Para essa consulta você precisará usar as tabelas Invoice (fatura), InvoiceLine (linha de faturamento), Track (música), Customer (cliente) e Genre (gênero).
 
-
+```sql
+SELECT qur2.Purchases, qur3.Country, qur3.Name, qur3.GenreID
+FROM
+	(SELECT MAX(qur1.Quantity) Purchases, Country, Name, GenreID
+	FROM 
+		(SELECT SUM(il.Quantity) Quantity, c.Country Country, g.Name Name, g.GenreID GenreID
+		FROM InvoiceLine il
+		LEFT JOIN Invoice i ON i.Invoiceid = il.Invoiceid
+		LEFT JOIN Customer c ON c.Customerid = i.Customerid
+		LEFT JOIN Track t ON t.Trackid = il.Trackid
+		LEFT JOIN Genre g ON g.Genreid = t.Genreid
+		GROUP BY c.Country, g.Name, g.Genreid) qur1
+	GROUP BY Country) qur2
+LEFT JOIN (
+	SELECT SUM(il.Quantity) Quantity, c.Country Country, g.Name Name, g.GenreID GenreID
+	FROM InvoiceLine il 
+	LEFT JOIN Invoice i ON i.invoiceid = il.invoiceid
+	LEFT JOIN Customer c ON c.Customerid = i.Customerid
+	LEFT JOIN Track t ON t.Trackid = il.Trackid
+	LEFT JOIN Genre g ON g.Genreid = t.Genreid
+	GROUP BY c.Country, g.Name, g.Genreid) qur3	
+```
+Resposta:
+```text
+9	Argentina	Alternative & Punk	4
+9	Argentina	Rock	1
+22	Australia	Rock	1
+15	Austria	Rock	1
+21	Belgium	Rock	1
+81	Brazil	Rock	1
+107	Canada	Rock	1
+...
+```
 ### SQL Avançado: Pergunta 2
 Retorne todos os nomes de músicas que possuem um comprimento de canção maior que o comprimento médio de canção. Embora você possa fazer isso com duas consultas. Imagine que você queira que sua consulta atualize com base em onde os dados são colocados no banco de dados. Portanto, você não quer fazer um hard code da média na sua consulta. Você só precisa da tabela Track(música) para completar essa consulta.
 Retorne o Name (nome) e os Milliseconds (milissegundos) para cada música. Ordene pelo comprimento da canção com as músicas mais longas sendo listadas primeiro.
+
+```sql
+SELECT Name, Milliseconds FROM Track
+WHERE Milliseconds >= (SELECT AVG(Milliseconds) from Track)
+ORDER BY Milliseconds DESC
+```
+
+```text
+Occupation / Precipice	5286953
+Through a Looking Glass	5088838
+Greetings from Earth, Pt. 1	2960293
+The Man With Nine Lives	2956998
+Battlestar Galactica, Pt. 2	2956081
+Battlestar Galactica, Pt. 1	2952702
+Murder On the Rising Star	2935894
+Battlestar Galactica, Pt. 3	2927802
+Take the Celestra	2927677
+Fire In Space	2926593
+...
+```
 
 ### SQL Avançado: Pergunta 3
 Escreva uma consulta que determina qual cliente gastou mais em músicas por país. Escreva uma consulta que retorna o país junto ao principal cliente e quanto ele gastou. Para países que compartilham a quantia total gasta, forneça todos os clientes que gastaram essa quantia.
